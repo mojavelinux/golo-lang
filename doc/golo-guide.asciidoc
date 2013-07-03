@@ -1,6 +1,7 @@
-The Golo Programming Language
-=============================
+= The Go[lo]##lo## Programming Language
 Julien Ponge <julien.ponge@insa-lyon.fr>
+:title: The Golo Programming Language
+//:linkcss!:
 
 This is the documentation for the Golo programming language.
 
