@@ -131,6 +131,7 @@
     <animal-sniffer-maven-plugin.version>1.9</animal-sniffer-maven-plugin.version>
     <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
     <maven-bundle-plugin.version>2.4.0</maven-bundle-plugin.version>
+    <asciidoctor-maven-plugin.version>0.1.4-SNAPSHOT</asciidoctor-maven-plugin.version>
   </properties>
 
   <dependencies>
@@ -356,7 +357,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
 
@@ -455,6 +455,149 @@
       </build>
     </profile>
 
+    <profile>
+      <id>docs</id>
+      <!-- Execute using: mvn generate-resources -Pdocs -->
+      <!-- Single-page HTML => target/docbook/publish/en-US/html/golo-guide.html -->
+      <!-- PDF Document     => target/docbook/publish/en-US/pdf/golo-guide.pdf -->
+      <repositories>
+        <repository>
+          <id>jboss-public-repository-group</id>
+          <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctor-maven-plugin</artifactId>
+            <version>${asciidoctor-maven-plugin.version}</version>
+            <configuration>
+              <sourceDirectory>${project.basedir}/doc</sourceDirectory>
+              <sourceDocumentName>golo-guide.asciidoc</sourceDocumentName>
+              <eruby>erubis</eruby>
+            </configuration>
+            <executions>
+              <execution>
+                <id>generate-html-doc</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>process-asciidoc</goal>
+                </goals>
+                <configuration>
+                  <backend>html5</backend>
+                  <outputDirectory>target/docbook/publish/en-US/html</outputDirectory> 
+                  <sourceHighlighter>coderay</sourceHighlighter>
+                  <embedAssets>true</embedAssets>
+                  <attributes>
+                    <stylesheet>${project.basedir}/doc/golo.css</stylesheet>
+                    <imagesdir>${project.basedir}/doc/images</imagesdir>
+                    <icons>font</icons>
+                    <sectanchors>true</sectanchors>
+                    <!-- replace toc2 / toc-position attributes with <toc>left</toc> after upgrade to 1.5.0 -->
+                    <toc2>true</toc2>
+                    <toc-position>left</toc-position>
+                  </attributes>
+                </configuration>
+              </execution>
+              <execution>
+                <id>generate-docbook-doc</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>process-asciidoc</goal>
+                </goals>
+                <configuration>
+                  <backend>docbook45</backend>
+                  <doctype>book</doctype>
+                  <outputDirectory>target/docbook/source/en-US</outputDirectory> 
+                  <attributes>
+                    <imagesdir>${project.basedir}/doc/images</imagesdir>
+                  </attributes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.jboss.maven.plugins</groupId>
+            <artifactId>maven-jdocbook-plugin</artifactId>
+            <version>2.3.8</version>
+            <extensions>true</extensions>
+            <dependencies>
+              <!--
+              <dependency>
+                <groupId>org.jboss</groupId>
+                <artifactId>jbossorg-docbook-xslt</artifactId>
+                <version>1.1.1</version>
+              </dependency>
+              -->
+              <dependency>
+                <groupId>org.jboss.pressgang</groupId>
+                <artifactId>pressgang-xslt-ns</artifactId>
+                <version>3.0.0</version>
+              </dependency>
+              <dependency>
+                <groupId>org.jboss.pressgang</groupId>
+                <artifactId>pressgang-jdocbook-style</artifactId>
+                <type>jdocbook-style</type>
+                <version>3.0.0</version>
+              </dependency>
+            </dependencies>
+            <configuration>
+              <sourceDirectory>${project.build.directory}/docbook/source</sourceDirectory>
+              <sourceDocumentName>golo-guide.xml</sourceDocumentName>
+              <masterTranslation>en-US</masterTranslation>
+              <!-- when the time comes, enable custom fonts and images -->
+              <!--
+              <fontsDirectory>${project.basedir}/fonts</fontsDirectory>
+              <imageResource>
+                <directory>${project.basedir}/doc</directory>
+                <includes>
+                  <include>images/*.png</include>
+                </includes>
+              </imageResource>
+              -->
+              <formats>
+                <format>
+                  <formatName>pdf</formatName>
+                  <stylesheetResource>classpath:/xslt/org/jboss/pressgang/pdf.xsl</stylesheetResource>
+                  <finalName>golo-guide.pdf</finalName>
+                </format>
+              </formats>
+              <options>
+                <autoDetectFonts>true</autoDetectFonts>
+                <xincludeSupported>true</xincludeSupported>
+                <xmlTransformerType>saxon</xmlTransformerType>
+                <docbookVersion>1.78.0</docbookVersion>
+                <localeSeparator>-</localeSeparator>
+                <!-- AsciiDoc processing instructions not processed until version 3.0.1 of pressgang-tools -->
+                <!--
+                <transformerParameters>
+                  <asciidoc.mode>1</asciidoc.mode>
+                </transformerParameters>
+                -->
+              </options>
+            </configuration>
+            <executions>
+              <execution>
+                <id>generate-pdf-doc</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>resources</goal>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
 </project>
